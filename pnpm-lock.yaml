@@ -10,6 +10,9 @@ importers:
 
   apps/client:
     dependencies:
+      appwrite:
+        specifier: ^18.2.0
+        version: 18.2.0
       axios:
         specifier: ^1.11.0
         version: 1.11.0
@@ -1712,6 +1715,9 @@ packages:
 
   append-field@1.0.0:
     resolution: {integrity: sha512-klpgFSWLW1ZEs8svjfb7g4qWY0YS5imI82dTg+QahUvJ8YqAY0P10Uk8tTyh9ZGuYEZEMaeJYCF5BFuX552hsw==}
+
+  appwrite@18.2.0:
+    resolution: {integrity: sha512-g7pQpsxqR7+amEIaQLXMN4XzdQKenTHnGdA4s7UUJdZufhlHdJby8895h8z893+S0XipeHZhi0wpxYA2An95Rg==}
 
   arch@3.0.0:
     resolution: {integrity: sha512-AmIAC+Wtm2AU8lGfTtHsw0Y9Qtftx2YXEEtiBP10xFUtMOA+sHHx6OAddyL52mUKh1vsXQ6/w1mVDptZCyUt4Q==}
@@ -6168,6 +6174,8 @@ snapshots:
       picomatch: 2.3.1
 
   append-field@1.0.0: {}
+
+  appwrite@18.2.0: {}
 
   arch@3.0.0: {}
 
