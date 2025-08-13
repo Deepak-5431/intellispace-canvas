@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useUserStore } from "@/lib/userStore";
@@ -10,7 +8,6 @@ import { useState } from "react";
 import { useRef, useEffect } from "react";
 
 const Navbar = () => {
-  // Ref for avatar/dropdown
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { currentUser, fetchUser } = useUserStore();
   const router = useRouter();
@@ -26,7 +23,7 @@ const Navbar = () => {
     }
   };
 
-  // Helper to get initials from email or name
+  
   const getInitials = (user: { name?: string; email?: string } | null) => {
     if (!user) return "";
     if (user.name) {
@@ -39,9 +36,7 @@ const Navbar = () => {
     return "U";
   };
 
-  // Dropdown state
   const [showDropdown, setShowDropdown] = useState(false);
-  // Close dropdown on outside click
   useEffect(() => {
     if (!showDropdown) return;
     const handleClick = (e: MouseEvent) => {
