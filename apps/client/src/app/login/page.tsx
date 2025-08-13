@@ -4,11 +4,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { account } from '@/lib/appwrite';
+import { useUserStore } from '@/lib/userStore';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
+  const { fetchUser } = useUserStore();
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -17,25 +19,24 @@ const LoginPage = () => {
       // Use the Appwrite SDK to create a session (log in)
       await account.createEmailPasswordSession(email, password);
       console.log("Logged in successfully!");
-
+      await fetchUser();
       // After successful login, redirect to the homepage
       router.push('/');
 
     } catch (error) {
       console.error("Failed to log in:", error);
-      // TODO: Show an error message to the user
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-black via-gray-900 to-red-700 text-black">
+  <div className="flex justify-center items-center pt-0 bg-gradient-to-br from-black via-gray-900 to-red-700 text-black min-h-[calc(100vh-65px)]">
       <div className="relative w-full max-w-md p-10 space-y-8 bg-white/90 rounded-2xl shadow-2xl backdrop-blur-md border border-gray-200">
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center justify-center w-24 h-24 bg-gradient-to-tr from-indigo-400 via-purple-400 to-pink-400 rounded-full shadow-lg border-4 border-white">
             <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
         </div>
         <h1 className="pt-12 text-3xl font-extrabold text-center text-gray-800 tracking-tight drop-shadow-sm">Sign In</h1>
         
-        <form className="space-y-7" onSubmit={handleSubmit}>
+        <form className="space-y-7" onSubmit={handleSubmit} method='post'>
           <div>
             <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">Email address</label>
             <div className="relative">

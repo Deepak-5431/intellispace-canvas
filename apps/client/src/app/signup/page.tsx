@@ -1,10 +1,13 @@
+// path: apps/client/src/app/signup/page.tsx
 
 "use client";
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ID } from 'appwrite';
 import { account } from '@/lib/appwrite';
-const LoginPage = () => {
+
+const SignupPage = () => { // Changed to an arrow function
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
@@ -13,28 +16,24 @@ const LoginPage = () => {
     event.preventDefault();
 
     try {
-      // Use the Appwrite SDK to create a session (log in)
-      await account.createEmailPasswordSession(email, password);
-      console.log("Logged in successfully!");
-
-      // After successful login, redirect to the homepage
-      router.push('/');
-
+      await account.create(ID.unique(), email, password);
+      console.log("Account created successfully!");
+      router.push('/verify-email');
     } catch (error) {
-      console.error("Failed to log in:", error);
-      // TODO: Show an error message to the user
+      console.error("Failed to create account:", error);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-black via-gray-900 to-red-700 text-black">
+   <div className="flex justify-center items-center pt-0 bg-gradient-to-br from-black via-gray-900 to-red-700 text-black min-h-[calc(100vh-65px)]">
       <div className="relative w-full max-w-md p-10 space-y-8 bg-white/90 rounded-2xl shadow-2xl backdrop-blur-md border border-gray-200">
         <div className="absolute -top-12 left-1/2 -translate-x-1/2 flex items-center justify-center w-24 h-24 bg-gradient-to-tr from-indigo-400 via-purple-400 to-pink-400 rounded-full shadow-lg border-4 border-white">
-            <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
+          <svg className="w-12 h-12 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         </div>
-        <h1 className="pt-12 text-3xl font-extrabold text-center text-gray-800 tracking-tight drop-shadow-sm">Sign In</h1>
+        <h1 className="pt-12 text-3xl font-extrabold text-center text-gray-800 tracking-tight drop-shadow-sm">Create an Account</h1>
         
         <form className="space-y-7" onSubmit={handleSubmit}>
+          {/* Email Input */}
           <div>
             <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-1">Email address</label>
             <div className="relative">
@@ -53,6 +52,7 @@ const LoginPage = () => {
               />
             </div>
           </div>
+          {/* Password Input */}
           <div>
             <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-1">Password</label>
             <div className="relative">
@@ -71,18 +71,19 @@ const LoginPage = () => {
               />
             </div>
           </div>
+          {/* Submit Button */}
           <div>
             <button
               type="submit"
               className="w-full px-4 py-2 font-semibold text-lg text-white bg-gradient-to-r from-black via-gray-800 to-red-700 rounded-lg shadow-md hover:from-red-800 hover:to-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-700 transition"
             >
-              Sign In
+              Sign Up
             </button>
           </div>
         </form>
       </div>
     </div>
   );
-}
+};
 
-export default LoginPage;
+export default SignupPage; 
