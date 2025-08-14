@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useUserStore } from "../lib/userStore"; 
 import { Geist, Geist_Mono } from "next/font/google";
 import  Navbar  from '@/components/shared/Navbar';
+import { ApolloProvider } from "@/lib/apollo-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,10 +37,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ApolloProvider>
         <UserProvider>
           <Navbar />
           {children}
           </UserProvider>
+          </ApolloProvider>
       </body>
     </html>
   );

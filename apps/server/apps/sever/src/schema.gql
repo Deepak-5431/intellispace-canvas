@@ -1,0 +1,17 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type Canvas {
+  id: ID!
+  name: String!
+  ownerId: String!
+}
+
+type Mutation {
+  createCanvas(name: String!, ownerId: String!): Canvas!
+}
+
+type Query {
+  sayHello: String!
+}
