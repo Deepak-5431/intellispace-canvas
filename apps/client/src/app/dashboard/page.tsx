@@ -1,4 +1,3 @@
-// path: apps/client/src/app/dashboard/page.tsx
 "use client";
 
 import { useUserStore } from "@/lib/userStore";
@@ -6,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { gql, useMutation } from "@apollo/client";
 
-// 1. Define the GraphQL mutation we want to send
 const CREATE_CANVAS_MUTATION = gql`
   mutation CreateCanvas($name: String!, $ownerId: String!) {
     createCanvas(name: $name, ownerId: $ownerId) {
@@ -20,25 +18,23 @@ const DashboardPage = () => {
   const { currentUser, isLoading } = useUserStore();
   const router = useRouter();
 
-  // 2. Use the useMutation hook from Apollo Client
   const [createCanvas, { loading, error }] = useMutation(CREATE_CANVAS_MUTATION);
 
-  // This useEffect protects the route
   useEffect(() => {
     if (!isLoading && !currentUser) {
       router.push('/login');
     }
   }, [isLoading, currentUser, router]);
 
-  // 3. Create a function to handle the button click
+  
   const handleCreateCanvas = async () => {
-    if (!currentUser) return; // Make sure we have a user
+    if (!currentUser) return; 
 
     try {
       const response = await createCanvas({
         variables: {
           name: 'Untitled Canvas',
-          ownerId: currentUser.$id, // Use the real, logged-in user's ID
+          ownerId: currentUser.$id, 
         },
       });
       console.log('Canvas created:', response.data);
