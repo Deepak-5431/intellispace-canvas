@@ -20,8 +20,7 @@ const LoginPage = () => {
       await account.createEmailPasswordSession(email, password);
       console.log("Logged in successfully!");
       await fetchUser();
-      // After successful login, redirect to the homepage
-      router.push('/');
+      router.push('/dashboard');
 
     } catch (error) {
       console.error("Failed to log in:", error);

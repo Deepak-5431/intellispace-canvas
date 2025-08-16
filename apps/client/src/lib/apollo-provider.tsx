@@ -1,13 +1,48 @@
-"use client"
+"use client";
 
-import { ApolloClient,InMemoryCache,ApolloProvider as Provider } from "@apollo/client"
+import { ApolloLink, HttpLink } from "@apollo/client";
+import {
+  ApolloNextAppProvider,
+  ApolloClient,
+  InMemoryCache,
+  SSRMultipartLink,
+} from "@apollo/client-integration-nextjs"; 
+import { setContext } from "@apollo/client/link/context";
+import { getJwt } from "./appwrite";
 
-const client = new ApolloClient({
-  uri : "http://localhost:5000/graphql",
-  cache: new InMemoryCache(),
-})
+function makeClient() {
+  const httpLink = new HttpLink({
+    uri: "http://localhost:5000/graphql",
+  });
 
-export function ApolloProvider({ children }: { children: React.ReactNode}) {
+  const authLink = setContext(async (_, { headers }) => {
+    const token = await getJwt();
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : "",
+      },
+    };
+  });
 
-  return <Provider client={ client}> {children}</Provider>
+  return new ApolloClient({
+    cache: new InMemoryCache(),
+    link:
+      typeof window === "undefined"
+        ? ApolloLink.from([
+            new SSRMultipartLink({
+              stripDefer: true,
+            }),
+            authLink.concat(httpLink),
+          ])
+        : authLink.concat(httpLink),
+  });
+}
+
+export function ApolloProvider({ children }: React.PropsWithChildren) {
+  return (
+    <ApolloNextAppProvider makeClient={makeClient}>
+      {children}
+    </ApolloNextAppProvider>
+  );
 }

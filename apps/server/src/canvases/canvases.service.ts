@@ -17,4 +17,8 @@ export class CanvasesService {
     return newCanvas.save();
   }
 
+  async FindAllByOwner(ownerId: string): Promise<Canvas[]>{
+    return this.canvasModel.find({ownerId}).exec();
+  }
+
 }

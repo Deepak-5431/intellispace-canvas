@@ -8,15 +8,17 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CanvasesModule } from './canvases/canvases.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true}),
     MongooseModule.forRoot(process.env.MONGO_URI!),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'apps/sever/src/schema.gql'),
+      autoSchemaFile: join(process.cwd(), 'apps/server/src/schema.gql'),
       sortSchema: true,
+
+      context:({req}) => ({req}),
+      playground: true,
     }),
     CanvasesModule],
   controllers: [AppController],

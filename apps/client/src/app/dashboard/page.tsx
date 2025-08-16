@@ -3,7 +3,17 @@
 import { useUserStore } from "@/lib/userStore";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { gql, useMutation } from "@apollo/client";
+import { gql, useMutation, useQuery } from "@apollo/client";
+import Link from "next/link";
+
+const GET_USER_CANVASES = gql`
+  query GetCanvasesByOwner($ownerId: String!) {
+    canvases(ownerId: $ownerId) {
+      id
+      name
+    }
+  }
+`;
 
 const CREATE_CANVAS_MUTATION = gql`
   mutation CreateCanvas($name: String!, $ownerId: String!) {
@@ -15,36 +25,39 @@ const CREATE_CANVAS_MUTATION = gql`
 `;
 
 const DashboardPage = () => {
-  const { currentUser, isLoading } = useUserStore();
+  const { currentUser, isLoading: isUserLoading } = useUserStore();
   const router = useRouter();
 
-  const [createCanvas, { loading, error }] = useMutation(CREATE_CANVAS_MUTATION);
+  // 2. Use the useQuery hook to fetch data
+  const { data, loading: isCanvasesLoading, error: canvasesError } = useQuery(GET_USER_CANVASES, {
+    variables: { ownerId: currentUser?.$id },
+    skip: !currentUser, // Don't run the query until we know who the user is
+  });
+
+  const [createCanvas, { loading: isCreating }] = useMutation(CREATE_CANVAS_MUTATION, {
+      refetchQueries: [GET_USER_CANVASES] // 3. Automatically refresh the list
+  });
 
   useEffect(() => {
-    if (!isLoading && !currentUser) {
+    if (!isUserLoading && !currentUser) {
       router.push('/login');
     }
-  }, [isLoading, currentUser, router]);
+  }, [isUserLoading, currentUser, router]);
 
-  
   const handleCreateCanvas = async () => {
-    if (!currentUser) return; 
-
+    if (!currentUser) return;
     try {
       const response = await createCanvas({
-        variables: {
-          name: 'Untitled Canvas',
-          ownerId: currentUser.$id, 
-        },
+        variables: { name: 'Untitled Canvas', ownerId: currentUser.$id },
       });
-      console.log('Canvas created:', response.data);
-      // TODO: Redirect to the new canvas page, e.g., /canvas/${response.data.createCanvas.id}
+      const newCanvasId = response.data.createCanvas.id;
+      router.push(`/canvas/${newCanvasId}`); // 4. Redirect on success
     } catch (err) {
       console.error('Failed to create canvas:', err);
     }
   };
 
-  if (isLoading || !currentUser) {
+  if (isUserLoading || !currentUser) {
     return <div>Loading...</div>;
   }
 
@@ -56,16 +69,25 @@ const DashboardPage = () => {
       <div className="mt-8">
         <button
           onClick={handleCreateCanvas}
-          disabled={loading} // 4. Disable the button while loading
+          disabled={isCreating}
           className="bg-indigo-600 text-white font-bold py-2 px-4 rounded hover:bg-indigo-700 disabled:bg-gray-400"
         >
-          {loading ? 'Creating...' : 'Create New Canvas'}
+          {isCreating ? 'Creating...' : 'Create New Canvas'}
         </button>
       </div>
 
-      {error && <p className="text-red-500 mt-4">Error: {error.message}</p>}
-
-      {/* We will add the list of existing canvases here later */}
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold">Your Canvases</h2>
+        {isCanvasesLoading && <p>Loading canvases...</p>}
+        {canvasesError && <p className="text-red-500">Error loading canvases.</p>}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+            {data?.canvases.map((canvas: any) => (
+                <Link key={canvas.id} href={`/canvas/${canvas.id}`} className="block p-6 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100">
+                    <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900">{canvas.name}</h5>
+                </Link>
+            ))}
+        </div>
+      </div>
     </div>
   );
 };
