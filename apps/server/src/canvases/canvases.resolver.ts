@@ -42,4 +42,21 @@ export class CanvasesResolver {
   ){
     return this.canvasesService.create(name, ownerId);
   }
+
+
+@Mutation(()=> Canvas)
+@UseGuards(AuthGuard)
+async updateCanvas(
+   @Args('id', { type: () => ID}) id: string,
+   @Args('name') name: string,
+){
+  return this.canvasesService.update(id, name);
+}
+
+
+  @Mutation(() => Canvas, { nullable: true })
+  @UseGuards(AuthGuard)
+  async removeCanvas(@Args('id', { type: () => ID }) id: string) {
+    return this.canvasesService.remove(id);
+  }
 }

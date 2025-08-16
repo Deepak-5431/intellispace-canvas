@@ -10,6 +10,8 @@ type Canvas {
 
 type Mutation {
   createCanvas(name: String!, ownerId: String!): Canvas!
+  removeCanvas(id: ID!): Canvas
+  updateCanvas(id: ID!, name: String!): Canvas!
 }
 
 type Query {

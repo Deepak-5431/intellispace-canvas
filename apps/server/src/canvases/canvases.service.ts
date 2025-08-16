@@ -20,5 +20,12 @@ export class CanvasesService {
   async FindAllByOwner(ownerId: string): Promise<Canvas[]>{
     return this.canvasModel.find({ownerId}).exec();
   }
+  
+  async update(id: string,name: string) : Promise<Canvas | null>{
+    return this.canvasModel.findByIdAndUpdate(id,{name},{new:true}).exec();
+  }
 
+  async remove(id: string) : Promise<Canvas | null>{
+    return this.canvasModel.findByIdAndDelete(id).exec();
+  }
 }
