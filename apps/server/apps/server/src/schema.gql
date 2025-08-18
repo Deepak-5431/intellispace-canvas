@@ -15,6 +15,7 @@ type Mutation {
 }
 
 type Query {
+  canvas(id: ID!): Canvas
   canvases(ownerId: String!): [Canvas!]!
   sayHello: String!
 }

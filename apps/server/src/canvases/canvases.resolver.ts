@@ -34,6 +34,12 @@ export class CanvasesResolver {
     return this.canvasesService.FindAllByOwner(ownerId);
   }
 
+
+  @Query(()=> Canvas, { name: 'canvas', nullable:true})
+  async getCanvasById(@Args('id',{type: ()=> ID}) id: string){
+   return this.canvasesService.findOne(id);
+  }
+
   @Mutation(() => Canvas)
   @UseGuards(AuthGuard)
   async createCanvas(

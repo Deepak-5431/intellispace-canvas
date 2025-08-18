@@ -28,4 +28,9 @@ export class CanvasesService {
   async remove(id: string) : Promise<Canvas | null>{
     return this.canvasModel.findByIdAndDelete(id).exec();
   }
+
+
+  async findOne(id: string) : Promise<Canvas | null>{
+    return this.canvasModel.findById(id).exec();
+  }
 }

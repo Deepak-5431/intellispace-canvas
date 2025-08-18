@@ -111,12 +111,11 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
   try {
     const response = await createCanvas({ variables: { name, ownerId: currentUser.$id } });
     const newId = response.data.createCanvas.id;
-    // replace temp id with real id and navigate
+    
     setCanvasesState(cs => cs.map(c => (c.id === tempId ? { ...c, id: newId } : c)));
     router.push(`/canvas/${newId}`);
   } catch (err) {
     console.error("Create failed:", err);
-    // revert
     setCanvasesState(prev);
   } 
 };
@@ -214,7 +213,7 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
                       className="p-4 bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg transform hover:-translate-y-1 transition"
                     >
                       <Link href={`/canvas/${canvas.id}`} className="block">
-                        {/* Thumbnail placeholder */}
+                        
                         <div className="w-full h-36 bg-gray-50 rounded mb-3 flex items-center justify-center text-gray-300">
                           <span className="text-sm">Thumbnail</span>
                         </div>
@@ -222,7 +221,7 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
                           {canvas.name}
                         </h5>
                       </Link>
-                      {/* metadata row */}
+                      
                       <div className="mt-2 text-sm text-gray-500 flex justify-between">
                         <span>{canvas.updatedAt ? new Date(canvas.updatedAt).toLocaleDateString() : "-"}</span>
                         <span>{canvas.size ? canvas.size : "-"}</span>
@@ -252,7 +251,7 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
         </div>
       </div>
 
-      {/* Create Modal */}
+      
       {isCreateModalOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
@@ -286,7 +285,7 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
         </div>
       )}
 
-      {/* Rename Modal */}
+      
       {isRenameModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
           <div className="bg-white p-6 rounded-lg shadow-xl">
