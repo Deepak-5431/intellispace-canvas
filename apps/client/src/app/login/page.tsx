@@ -16,11 +16,10 @@ const LoginPage = () => {
     event.preventDefault();
 
     try {
-      // Use the Appwrite SDK to create a session (log in)
       await account.createEmailPasswordSession(email, password);
       console.log("Logged in successfully!");
       await fetchUser();
-      router.push('/dashboard');
+      router.push('/');
 
     } catch (error) {
       console.error("Failed to log in:", error);

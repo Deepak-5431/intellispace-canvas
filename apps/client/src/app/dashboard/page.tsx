@@ -129,7 +129,7 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
   const handleDelete = (canvasId: string) => {
     if (!window.confirm("Are you sure you want to delete this canvas?")) return;
     const prev = canvasesState;
-    // optimistic remove
+    
     setCanvasesState(cs => cs.filter(c => c.id !== canvasId));
     removeCanvas({ variables: { id: canvasId } })
       .catch(err => {
@@ -142,7 +142,6 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCanvas || !newName) return;
     const prev = canvasesState;
-    // optimistic rename
     setCanvasesState(cs => cs.map(c => (c.id === selectedCanvas.id ? { ...c, name: newName } : c)));
     setIsRenameModalOpen(false);
     setSelectedCanvas(null);
@@ -153,7 +152,7 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
       });
   };
 
-  // Close rename modal on Escape
+  
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isRenameModalOpen) setIsRenameModalOpen(false);
@@ -197,7 +196,6 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
               ))}
             </div>
           ) : (
-            // Actual canvases or empty state
             <>
               {canvasesState?.length === 0 ? (
                 <div className="mt-6 p-8 bg-white rounded-lg border border-dashed border-gray-200 text-center">

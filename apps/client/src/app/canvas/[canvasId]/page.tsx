@@ -1,12 +1,20 @@
-"use client"
+"use client";
 
-import { useParams } from "next/navigation";
+import { useParams } from 'next/navigation';
 import { gql, useQuery } from '@apollo/client';
+import dynamic from 'next/dynamic'; 
 
+const CanvasEditor = dynamic(
+  () => import('@/components/canvas/CanvasEditor'),
+  { 
+    ssr: false, 
+    loading: () => <p>Loading Canvas...</p> 
+  }
+);
 
 const GET_CANVAS_BY_ID = gql`
-  query GetCanvasById($id: ID!){
-    canvas(id: $id){
+  query GetCanvasById($id: ID!) {
+    canvas(id: $id) {
       id
       name
     }
@@ -17,20 +25,23 @@ const CanvasPage = () => {
   const params = useParams();
   const canvasId = params.canvasId as string;
 
-const { data,loading,error } = useQuery(GET_CANVAS_BY_ID, {
-  variables: { id: canvasId},
-  skip: !canvasId,
-});
+  const { data, loading, error } = useQuery(GET_CANVAS_BY_ID, {
+    variables: { id: canvasId },
+    skip: !canvasId,
+  });
 
-if(loading)return <div>Loading...</div>
-if(error) return <div>error is {error.message}</div>
-if(!data?.canvas) return <div> canvas unable to fetch as of now</div>
+  if (loading) return <div>Loading canvas...</div>;
+  if (error) return <div>Error loading canvas: {error.message}</div>;
+  if (!data?.canvas) return <div>Canvas not found.</div>
 
-  return(
-    <div className="container mx-auto mt-8 px-4">
-      <h1 className="text-3xl font-bold">Canvas :{data.canvas.name}</h1>
-      <p className="mt-4">You are viewing canvas with ID: {data.canvas.id}</p>
-      <p className="mt-8 font-semibold">we will have fun here</p>
+  return (
+    <div className="w-full h-screen flex flex-col">
+      <header className="h-16 flex-shrink-0 p-4 border-b shadow-sm z-10 bg-white flex items-center">
+        <h1 className="text-xl font-bold">{data.canvas.name}</h1>
+      </header>
+      <main className="flex-grow w-full h-full">
+        <CanvasEditor />
+      </main>
     </div>
   );
 };
