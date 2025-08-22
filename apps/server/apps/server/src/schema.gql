@@ -3,6 +3,7 @@
 # ------------------------------------------------------
 
 type Canvas {
+  canvasData: String
   id: ID!
   name: String!
   ownerId: String!
@@ -11,11 +12,17 @@ type Canvas {
 type Mutation {
   createCanvas(name: String!, ownerId: String!): Canvas!
   removeCanvas(id: ID!): Canvas
-  updateCanvas(id: ID!, name: String!): Canvas!
+  updateCanvas(updateCanvasInput: UpdateCanvasInput!): Canvas!
 }
 
 type Query {
   canvas(id: ID!): Canvas
   canvases(ownerId: String!): [Canvas!]!
   sayHello: String!
+}
+
+input UpdateCanvasInput {
+  canvasData: String
+  id: ID!
+  name: String
 }

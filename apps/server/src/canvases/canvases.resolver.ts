@@ -1,6 +1,6 @@
 
 import { UseGuards } from '@nestjs/common';
-import { Resolver,Mutation,Args,ObjectType,Field,ID,Query } from '@nestjs/graphql';
+import { Resolver,Mutation,Args,ObjectType,Field,ID,Query, InputType } from '@nestjs/graphql';
 import { CanvasesService } from './canvases.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 
@@ -15,6 +15,22 @@ class Canvas{
 
   @Field()
   ownerId: string;
+
+  @Field({ nullable:true })
+  canvasData? : string;
+}
+
+
+@InputType()
+class UpdateCanvasInput{
+  @Field(() => ID)
+  id: string;
+
+  @Field({nullable:true})
+  name?: string;
+
+  @Field({nullable:true})
+  canvasData?: string;
 }
 
 
@@ -31,7 +47,7 @@ export class CanvasesResolver {
   @Query(() => [Canvas],{name: 'canvases'}) 
   @UseGuards(AuthGuard)
   async getCanvasesByOwner(@Args('ownerId') ownerId: string){
-    return this.canvasesService.FindAllByOwner(ownerId);
+    return this.canvasesService.findAllByOwner(ownerId);
   }
 
 
@@ -53,10 +69,9 @@ export class CanvasesResolver {
 @Mutation(()=> Canvas)
 @UseGuards(AuthGuard)
 async updateCanvas(
-   @Args('id', { type: () => ID}) id: string,
-   @Args('name') name: string,
+   @Args('updateCanvasInput') updateCanvasInput : UpdateCanvasInput,
 ){
-  return this.canvasesService.update(id, name);
+  return this.canvasesService.update(updateCanvasInput.id, updateCanvasInput);
 }
 
 

@@ -11,17 +11,24 @@ interface CanvasEditorProps{
 const CanvasEditor = ({shapes,setShapes}: CanvasEditorProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [size,setSize]  = useState({width:0,height:0});
-  useEffect(() => {
-    if (containerRef.current) {
-      setSize({
-        width: containerRef.current.offsetWidth,
-        height:containerRef.current.offsetHeight,
-      })
-    }
+  useLayoutEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setSize({
+          width: containerRef.current.offsetWidth,
+          height: containerRef.current.offsetHeight,
+        });
+      }
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    
+    return () => window.removeEventListener('resize', updateSize);
   }, []);
 
   const handleDragEnd = (e:any, index: number) => {
-    const newShapes  = shapes.slice();
+    const newShapes  = [...shapes];
     newShapes[index] = {
     ...newShapes[index],
     x: e.target.x(),
@@ -31,7 +38,7 @@ const CanvasEditor = ({shapes,setShapes}: CanvasEditorProps) => {
 };
 
   return (
-    <div ref={containerRef} className="absolute top-0 left-0 w-full h-full">
+    <div ref={containerRef} className="absolute top-0 left-0 w-full h-full ">
       <Stage width={size.width} height={size.height}>
         <Layer>
           {shapes.map((shape,i) =>{
@@ -43,6 +50,7 @@ const CanvasEditor = ({shapes,setShapes}: CanvasEditorProps) => {
             y={shape.y}
             width={100}
             height={100}
+            fill={shape.fill} 
             draggable
             onDragEnd={(e)=> handleDragEnd(e,i)}
             />
