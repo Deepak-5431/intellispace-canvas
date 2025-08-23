@@ -1,31 +1,44 @@
 "use client";
 
 import { useEffect, useRef, useState, useLayoutEffect } from 'react';
-import { Stage, Layer, Rect, Text } from 'react-konva';
+import { Stage, Layer, Rect, Text, Transformer } from 'react-konva';
+import type Konva from 'konva' ;
+
 
 interface CanvasEditorProps{
   shapes: any[];
-  setShapes: (shapes:any[]) => void;
+  setShapes: (shapes: any[]) => void;
+  selectedId: string | null;
+  setSelectedId: (id: string | null ) => void;
 }
 
-const CanvasEditor = ({shapes,setShapes}: CanvasEditorProps) => {
+const CanvasEditor = ({shapes,setShapes,selectedId,setSelectedId}: CanvasEditorProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<Konva.Stage>(null);
+  const transformerRef = useRef<Konva.Transformer>(null);
   const [size,setSize]  = useState({width:0,height:0});
+
   useLayoutEffect(() => {
-    const updateSize = () => {
       if (containerRef.current) {
         setSize({
           width: containerRef.current.offsetWidth,
           height: containerRef.current.offsetHeight,
         });
       }
-    };
+    },[]);
 
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    
-    return () => window.removeEventListener('resize', updateSize);
-  }, []);
+  useEffect(() => {
+    if (transformerRef.current) {
+      const stage = stageRef.current;
+      const selectedNode = stage?.findOne('#' + selectedId);
+      if (selectedNode) {
+        transformerRef.current.nodes([selectedNode]);
+      } else {
+        transformerRef.current.nodes([]);
+      }
+      transformerRef.current.getLayer()?.batchDraw();
+    }
+  }, [selectedId]);
 
   const handleDragEnd = (e:any, index: number) => {
     const newShapes  = [...shapes];
@@ -37,28 +50,52 @@ const CanvasEditor = ({shapes,setShapes}: CanvasEditorProps) => {
   setShapes(newShapes);
 };
 
+
+const handleTransformEnd = (e: any,index: number) => {
+  const node = e.target;
+  const newShapes = shapes.slice();
+  newShapes[index] = {
+    ...newShapes[index],
+    x:node.x(),
+    y: node.y(),
+    width: node.width() * node.scaleX(),
+    height: node.height() * node.scaleY(),
+    rotation: node.rotation(),
+  };
+setShapes(newShapes);
+};
+
+ const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
+  if(e.target === e.target.getStage()) {
+    setSelectedId(null);
+  }
+ };
+
   return (
     <div ref={containerRef} className="absolute top-0 left-0 w-full h-full ">
-      <Stage width={size.width} height={size.height}>
+      <Stage width={size.width}
+       height={size.height}
+       onMouseDown={handleStageMouseDown}
+       >
         <Layer>
-          {shapes.map((shape,i) =>{
-            if(shape.type === 'rect'){
-            return(
+          {shapes.map((shape,i) =>(
             <Rect
-            key={i}
-            x={shape.x}
-            y={shape.y}
-            width={100}
-            height={100}
-            fill={shape.fill} 
-            draggable
-            onDragEnd={(e)=> handleDragEnd(e,i)}
+              key={i}
+              id={shape.id} // Use a unique ID for selection
+              x={shape.x}
+              y={shape.y}
+              width={shape.width}
+              height={shape.height}
+              fill={shape.fill}
+              draggable
+              onClick={() => setSelectedId(shape.id)}
+              onTap={() => setSelectedId(shape.id)}
+              onDragEnd={(e) => handleDragEnd(e, i)}
+              onTransformEnd={(e) => handleTransformEnd(e, i)}
             />
-            );
-          }
-          return null;
-          })}
-         </Layer>
+          ))}
+          <Transformer ref={transformerRef} />
+        </Layer>
       </Stage>
     </div>
   );

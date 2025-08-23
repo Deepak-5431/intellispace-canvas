@@ -38,7 +38,7 @@ const CanvasPage = () => {
   const canvasId = params.canvasId as string;
 
   const [shapes, setShapes] = useState<any[]>([]);
-
+  const [selectedId,setSelectedId] = useState<string | null >(null);
   const { data, loading, error } = useQuery(GET_CANVAS_BY_ID, {
     variables: { id: canvasId },
     skip: !canvasId,
@@ -88,7 +88,12 @@ const CanvasPage = () => {
       <div className='flex flex-grow h-[calc(100vh-4rem)] overflow-hidden'>
         <Toolbar setShapes={setShapes} />
         <main className="flex-grow w-full h-full relative">
-          <CanvasEditor shapes={shapes} setShapes={setShapes} />
+          <CanvasEditor 
+          shapes={shapes} 
+          setShapes={setShapes}
+          selectedId={selectedId}
+          setSelectedId={setSelectedId}
+          />
         </main>
       </div>
     </div>

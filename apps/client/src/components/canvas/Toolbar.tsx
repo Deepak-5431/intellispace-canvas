@@ -1,6 +1,8 @@
 "use client"
 
-import React from "react"
+
+import { useState } from 'react';
+import { ID }  from 'appwrite';
 
 interface ToolbarProps {
   setShapes: (updater:( prevShapes: any[]) => any[]) => void;
@@ -14,7 +16,7 @@ const Toolbar = ({ setShapes}: ToolbarProps) => {
       ...previousShapes,
       {
        type: 'rect',
-        x: Math.random() * 400, // Random position for fun
+        x: Math.random() * 400, 
         y: Math.random() * 400,
       width: 100,
       height: 100,
