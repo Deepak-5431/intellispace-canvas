@@ -38,7 +38,10 @@ const CanvasPage = () => {
   const canvasId = params.canvasId as string;
 
   const [shapes, setShapes] = useState<any[]>([]);
-  const [selectedId,setSelectedId] = useState<string | null >(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [drawingMode, setDrawingMode] = useState('select');
+  const [selectedColor, setSelectedColor] = useState('#3B82F6');
+  
   const { data, loading, error } = useQuery(GET_CANVAS_BY_ID, {
     variables: { id: canvasId },
     skip: !canvasId,
@@ -56,16 +59,16 @@ const CanvasPage = () => {
       const canvasDataString = JSON.stringify(shapes);
       await updateCanvas({
         variables: {
-          updateCanvasInput:{
-          id: canvasId,
-          canvasData: canvasDataString,
+          updateCanvasInput: {
+            id: canvasId,
+            canvasData: canvasDataString,
           }
         }
       });
-      alert('canvas saved successfully!');
+      alert('Canvas saved successfully!');
     } catch (error) {
-      console.error('failed to save', error);
-      alert('failed to save canvas');
+      console.error('Failed to save', error);
+      alert('Failed to save canvas');
     }
   };
 
@@ -80,19 +83,28 @@ const CanvasPage = () => {
         <button
           onClick={handleSave}
           disabled={isSaving}
-          className='bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 disabled:bg-gray-400'
+          className='ml-auto bg-blue-600 text-white font-bold py-2 px-4 rounded hover:bg-blue-700 disabled:bg-gray-400'
         >
-          {isSaving ? 'saving...' : 'save'}
+          {isSaving ? 'Saving...' : 'Save'}
         </button>
       </header>
       <div className='flex flex-grow h-[calc(100vh-4rem)] overflow-hidden'>
-        <Toolbar setShapes={setShapes} />
+        <Toolbar 
+          setShapes={setShapes} 
+          setDrawingMode={setDrawingMode}
+          drawingMode={drawingMode}
+          selectedColor={selectedColor}
+          setSelectedColor={setSelectedColor}
+        />
         <main className="flex-grow w-full h-full relative">
           <CanvasEditor 
-          shapes={shapes} 
-          setShapes={setShapes}
-          selectedId={selectedId}
-          setSelectedId={setSelectedId}
+            shapes={shapes} 
+            setShapes={setShapes}
+            selectedId={selectedId}
+            setSelectedId={setSelectedId}
+            drawingMode={drawingMode}
+            setDrawingMode={setDrawingMode}
+            selectedColor={selectedColor}
           />
         </main>
       </div>

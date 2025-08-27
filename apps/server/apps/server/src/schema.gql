@@ -10,7 +10,7 @@ type Canvas {
 }
 
 type Mutation {
-  createCanvas(name: String!, ownerId: String!): Canvas!
+  createCanvas(name: String!, ownerId: String!, ownerName: String!): Canvas!
   removeCanvas(id: ID!): Canvas
   updateCanvas(updateCanvasInput: UpdateCanvasInput!): Canvas!
 }

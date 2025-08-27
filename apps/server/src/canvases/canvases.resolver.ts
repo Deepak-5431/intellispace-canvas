@@ -3,7 +3,11 @@ import { UseGuards } from '@nestjs/common';
 import { Resolver,Mutation,Args,ObjectType,Field,ID,Query, InputType } from '@nestjs/graphql';
 import { CanvasesService } from './canvases.service';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { CurrentUser } from 'src/auth/currentUser.decorator';
 
+interface UserPayload {
+  id: string
+}
 
 @ObjectType()
 class Canvas{
@@ -61,8 +65,9 @@ export class CanvasesResolver {
   async createCanvas(
     @Args('name') name: string,
     @Args('ownerId') ownerId: string,
+    @Args('ownerName') ownerName: string,
   ){
-    return this.canvasesService.create(name, ownerId);
+    return this.canvasesService.create(name, ownerId,ownerName);
   }
 
 

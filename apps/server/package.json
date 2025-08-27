@@ -30,6 +30,7 @@
     "apollo-server-express": "^3.13.0",
     "dotenv": "^17.2.1",
     "graphql": "^16.11.0",
+    "jwt-decode": "^4.0.0",
     "mongoose": "^8.17.1",
     "node-appwrite": "^17.2.0",
     "reflect-metadata": "^0.2.2",

@@ -16,16 +16,16 @@ const GET_USER_CANVASES = gql`
 `;
 
 const CREATE_CANVAS_MUTATION = gql`
-  mutation CreateCanvas($name: String!, $ownerId: String!) {
-    createCanvas(name: $name, ownerId: $ownerId) {
+  mutation CreateCanvas($name: String!, $ownerId: String!, $ownerName: String!) {
+    createCanvas(name: $name, ownerId: $ownerId, ownerName: $ownerName) {
       id
     }
   }
 `;
 
 const UPDATE_CANVAS_MUTATION = gql`
-  mutation UpdateCanvas($id: ID!, $name: String!) {
-    updateCanvas(id: $id, name: $name) {
+  mutation UpdateCanvas($updateCanvasInput : UpdateCanvasInput!) {
+    updateCanvas(updateCanvasInput: $updateCanvasInput) {
       id
       name
     }
@@ -109,7 +109,10 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
   
 
   try {
-    const response = await createCanvas({ variables: { name, ownerId: currentUser.$id } });
+    const response = await createCanvas({ variables: { name,
+      ownerId: currentUser.$id,
+      ownerName: currentUser.name || currentUser.email
+    }});
     const newId = response.data.createCanvas.id;
     
     setCanvasesState(cs => cs.map(c => (c.id === tempId ? { ...c, id: newId } : c)));
@@ -141,15 +144,16 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
   const handleRenameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCanvas || !newName) return;
-    const prev = canvasesState;
-    setCanvasesState(cs => cs.map(c => (c.id === selectedCanvas.id ? { ...c, name: newName } : c)));
+    updateCanvas({
+      variables:{
+        updateCanvasInput:{
+          id: selectedCanvas.id,
+          name: newName
+        }
+      }
+    });
     setIsRenameModalOpen(false);
     setSelectedCanvas(null);
-    updateCanvas({ variables: { id: selectedCanvas.id, name: newName } })
-      .catch(err => {
-        console.error("Rename failed:", err);
-        setCanvasesState(prev);
-      });
   };
 
   
@@ -309,6 +313,7 @@ const handleCreateSubmit = async (e?: React.FormEvent) => {
                 >
                   Save
                 </button>
+              
               </div>
             </form>
           </div>

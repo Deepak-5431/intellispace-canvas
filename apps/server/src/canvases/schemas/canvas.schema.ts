@@ -9,6 +9,9 @@ export class Canvas extends Document{
   @Prop({required: true})
   ownerId: string;
 
+  @Prop({required: true})
+  ownerName: String;
+
   @Prop({type:String,required: false})
   canvasData? : string;
 }

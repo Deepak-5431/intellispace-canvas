@@ -12,8 +12,8 @@ export class CanvasesService {
     console.log('CanvasesService initialized and ready for MongoDB!');
   }
 
-  async create(name: string, ownerId: string): Promise<Canvas>{
-    const newCanvas = new this.canvasModel({ name,ownerId});
+  async create(name: string, ownerId: string, ownerName: string): Promise<Canvas>{
+    const newCanvas = new this.canvasModel({ name,ownerId,ownerName});
     return newCanvas.save();
   }
 
