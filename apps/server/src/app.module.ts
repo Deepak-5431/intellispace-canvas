@@ -7,6 +7,7 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CanvasesModule } from './canvases/canvases.module';
+import { YjsGateway } from './yjs/yjs.gateway';
 
 @Module({
   imports: [
@@ -22,6 +23,6 @@ import { CanvasesModule } from './canvases/canvases.module';
     }),
     CanvasesModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, YjsGateway],
 })
 export class AppModule {}

@@ -1,23 +1,23 @@
 "use client"
 
-import { useCallback, useState } from 'react';
-import { ID } from 'appwrite';
+import { useCallback } from 'react';
 
 interface ToolbarProps {
-  setShapes: (updater: (prevShapes: any[]) => any[]) => void;
+  addShape: (shapeData: any) => void;
+  generateUniqueId: () => string;
   setDrawingMode: (mode: string) => void;
   drawingMode: string;
   selectedColor: string;
   setSelectedColor: (color: string) => void;
 }
 
-const Toolbar = ({ setShapes, setDrawingMode, drawingMode, selectedColor, setSelectedColor }: ToolbarProps) => {
+const Toolbar = ({ addShape, generateUniqueId, setDrawingMode, drawingMode, selectedColor, setSelectedColor }: ToolbarProps) => {
    
-  const addShape = useCallback((type: 'rect' | 'circle' | 'triangle') => {
-    setDrawingMode('select'); // Switch back to select mode after adding a shape
+  const handleAddShape = useCallback((type: 'rect' | 'circle' | 'triangle') => {
+    setDrawingMode('select'); 
     
     const commonProps = {
-      id: ID.unique(),
+      id: generateUniqueId(),
       x: Math.random() * 400, 
       y: Math.random() * 400,
       fill: selectedColor,
@@ -25,36 +25,26 @@ const Toolbar = ({ setShapes, setDrawingMode, drawingMode, selectedColor, setSel
     };
 
     if (type === 'rect') {
-      setShapes((previousShapes) => [
-        ...previousShapes,
-        {
-          ...commonProps,
-          type: 'rect', 
-          width: 100,
-          height: 100,  
-        },
-      ]);
+      addShape({
+        ...commonProps,
+        type: 'rect', 
+        width: 100,
+        height: 100,  
+      });
     } else if (type === 'circle') {
-      setShapes((previousShapes) => [
-        ...previousShapes,
-        {
-          ...commonProps,
-          type: 'circle',
-          radius: 50,
-        }
-      ]);
+      addShape({
+        ...commonProps,
+        type: 'circle',
+        radius: 50,
+      });
     } else if (type === 'triangle') {
-      setShapes((previousShapes) => [
-        ...previousShapes,
-        {
-          ...commonProps,
-          type: 'triangle',
-          radius: 50,
-        }
-      ]);
+      addShape({
+        ...commonProps,
+        type: 'triangle',
+        radius: 50,
+      });
     }
-  }, [selectedColor, setShapes, setDrawingMode]);
-
+  }, [selectedColor, addShape, setDrawingMode, generateUniqueId]);
   return (
     <div className="w-20 bg-gray-100 border-r p-2 flex flex-col items-center space-y-4">
       <div className="flex flex-col items-center space-y-4">
@@ -71,7 +61,7 @@ const Toolbar = ({ setShapes, setDrawingMode, drawingMode, selectedColor, setSel
         </button>
         
         <button
-          onClick={() => addShape('rect')}
+          onClick={() => handleAddShape('rect')}
           className="w-16 h-16 bg-white border rounded shadow-sm flex items-center justify-center hover:bg-blue-100"
           title="Add Rectangle"
         >
@@ -81,7 +71,7 @@ const Toolbar = ({ setShapes, setDrawingMode, drawingMode, selectedColor, setSel
         </button>
         
         <button
-          onClick={() => addShape('circle')}
+          onClick={() => handleAddShape('circle')}
           className="w-16 h-16 bg-white border rounded shadow-sm flex items-center justify-center hover:bg-blue-100"
           title="Add Circle"
         >
@@ -91,7 +81,7 @@ const Toolbar = ({ setShapes, setDrawingMode, drawingMode, selectedColor, setSel
         </button>
         
         <button
-          onClick={() => addShape('triangle')}
+          onClick={() => handleAddShape('triangle')}
           className="w-16 h-16 bg-white border rounded shadow-sm flex items-center justify-center hover:bg-blue-100"
           title="Add Triangle"
         >
