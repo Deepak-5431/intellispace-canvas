@@ -1,7 +1,7 @@
 // apps/client/src/components/canvas/CanvasEditor.tsx
 "use client";
 
-import { useEffect, useRef, useState, useLayoutEffect } from 'react';
+import { useEffect, useRef, useState, useLayoutEffect, useCallback } from 'react';
 import { Stage, Layer, Rect, Text, Transformer, Circle, RegularPolygon, Line } from 'react-konva';
 import type Konva from 'konva';
 
@@ -13,6 +13,8 @@ interface CanvasEditorProps {
   setDrawingMode: (mode: string) => void;
   selectedColor: string;
   addShape: (shapeData: any) => void;
+  generateUniqueId: () => string;
+  updateShapeById: (shapeId: string, updatedProps: any) => void;
 }
 
 const CanvasEditor = ({ 
@@ -22,14 +24,16 @@ const CanvasEditor = ({
   drawingMode, 
   setDrawingMode,
   selectedColor,
-  addShape
+  addShape,
+  generateUniqueId,
+  updateShapeById
 }: CanvasEditorProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Konva.Stage>(null);
   const transformerRef = useRef<Konva.Transformer>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const isDrawing = useRef(false);
-  const currentLineId = useRef<string | null>(null); // Track by ID instead of object
+  const currentLineId = useRef<string | null>(null);
   const [localShapes, setLocalShapes] = useState<any[]>([]);
 
   useLayoutEffect(() => {
@@ -41,8 +45,12 @@ const CanvasEditor = ({
     }
   }, []);
 
-  // Combine Y.js shapes with local shapes for rendering
-  const allShapes = [...shapes, ...localShapes];
+  const allShapes = [
+    ...shapes,
+    ...localShapes.filter(localShape => 
+      !shapes.some(shape => shape.id === localShape.id)
+    )
+  ];
 
   useEffect(() => {
     if (transformerRef.current && drawingMode === 'select') {
@@ -57,6 +65,28 @@ const CanvasEditor = ({
     }
   }, [selectedId, drawingMode, allShapes]);
 
+  const handleDragEnd = useCallback((e: Konva.KonvaEventObject<DragEvent>, shapeId: string) => {
+    if (drawingMode === 'select') {
+      updateShapeById(shapeId, {
+        x: e.target.x(),
+        y: e.target.y()
+      });
+    }
+  }, [updateShapeById, drawingMode]);
+
+  const handleTransformEnd = useCallback((e: Konva.KonvaEventObject<Event>, shapeId: string) => {
+    if (drawingMode === 'select') {
+      const node = e.target;
+      updateShapeById(shapeId, {
+        x: node.x(),
+        y: node.y(),
+        rotation: node.rotation(),
+        scaleX: node.scaleX(),
+        scaleY: node.scaleY()
+      });
+    }
+  }, [updateShapeById, drawingMode]);
+
   const handleStageMouseDown = (e: Konva.KonvaEventObject<MouseEvent>) => {
     if (drawingMode === 'select') {
       if (e.target === e.target.getStage()) {
@@ -70,9 +100,8 @@ const CanvasEditor = ({
       const pos = e.target.getStage()?.getPointerPosition();
       if (!pos) return;
       
-      const newLineId = Date.now().toString();
+      const newLineId = generateUniqueId();
       
-      // Create line in local state for smooth drawing
       const newLine = {
         id: newLineId,
         type: 'line',
@@ -86,7 +115,7 @@ const CanvasEditor = ({
       };
       
       setLocalShapes(prev => [...prev, newLine]);
-      currentLineId.current = newLineId; // Store just the ID
+      currentLineId.current = newLineId;
     }
   };
 
@@ -96,9 +125,8 @@ const CanvasEditor = ({
     const point = e.target.getStage()?.getPointerPosition();
     if (!point) return;
     
-    // Update the current line with new points in LOCAL STATE (smooth)
     setLocalShapes(prev => prev.map(shape => {
-      if (shape.id === currentLineId.current) { // Use the stored ID
+      if (shape.id === currentLineId.current) {
         const newPoints = [...shape.points, point.x, point.y];
         return {
           ...shape,
@@ -113,22 +141,19 @@ const CanvasEditor = ({
     if (drawingMode === 'pencil' && currentLineId.current) {
       isDrawing.current = false;
       
-      // Find the completed line in local shapes
       const completedLine = localShapes.find(shape => shape.id === currentLineId.current);
       
       if (completedLine) {
-        // When drawing is complete, add the final line to Y.js for collaboration
         addShape(completedLine);
       }
       
-      // Clear local shapes and current line reference
       setLocalShapes([]);
       currentLineId.current = null;
     }
   };
 
   return (
-    <div ref={containerRef} className="absolute top-0 left-0 w-full h-full ">
+    <div ref={containerRef} className="absolute top-0 left-0 w-full h-full">
       <Stage 
         width={size.width}
         height={size.height}
@@ -139,7 +164,7 @@ const CanvasEditor = ({
         onMouseLeave={handleStageMouseUp}
       >
         <Layer>
-          {allShapes.map((shape, i) => {
+          {allShapes.map((shape) => {
             if (shape.type === 'rect') {
               return (
                 <Rect
@@ -152,10 +177,12 @@ const CanvasEditor = ({
                   fill={shape.fill}
                   rotation={shape.rotation || 0}
                   draggable={drawingMode === 'select'}
-                  onClick={() => drawingMode === 'select' && setSelectedId(shape.id)}
-                  onTap={() => drawingMode === 'select' && setSelectedId(shape.id)}
                   scaleX={shape.scaleX || 1}
                   scaleY={shape.scaleY || 1}
+                  onClick={() => drawingMode === 'select' && setSelectedId(shape.id)}
+                  onTap={() => drawingMode === 'select' && setSelectedId(shape.id)}
+                  onDragEnd={(e) => handleDragEnd(e, shape.id)}
+                  onTransformEnd={(e) => handleTransformEnd(e, shape.id)}
                 />
               );
             } else if (shape.type === 'circle') {
@@ -169,10 +196,12 @@ const CanvasEditor = ({
                   fill={shape.fill}
                   rotation={shape.rotation || 0}
                   draggable={drawingMode === 'select'}
-                  onClick={() => drawingMode === 'select' && setSelectedId(shape.id)}
-                  onTap={() => drawingMode === 'select' && setSelectedId(shape.id)}
                   scaleX={shape.scaleX || 1}
                   scaleY={shape.scaleY || 1}
+                  onClick={() => drawingMode === 'select' && setSelectedId(shape.id)}
+                  onTap={() => drawingMode === 'select' && setSelectedId(shape.id)}
+                  onDragEnd={(e) => handleDragEnd(e, shape.id)}
+                  onTransformEnd={(e) => handleTransformEnd(e, shape.id)}
                 />
               );
             } else if (shape.type === 'triangle') {
@@ -187,10 +216,12 @@ const CanvasEditor = ({
                   fill={shape.fill}
                   rotation={shape.rotation || 0}
                   draggable={drawingMode === 'select'}
-                  onClick={() => drawingMode === 'select' && setSelectedId(shape.id)}
-                  onTap={() => drawingMode === 'select' && setSelectedId(shape.id)}
                   scaleX={shape.scaleX || 1}
                   scaleY={shape.scaleY || 1}
+                  onClick={() => drawingMode === 'select' && setSelectedId(shape.id)}
+                  onTap={() => drawingMode === 'select' && setSelectedId(shape.id)}
+                  onDragEnd={(e) => handleDragEnd(e, shape.id)}
+                  onTransformEnd={(e) => handleTransformEnd(e, shape.id)}
                 />
               );
             } else if (shape.type === 'line') {
@@ -208,6 +239,8 @@ const CanvasEditor = ({
                   draggable={drawingMode === 'select'}
                   onClick={() => drawingMode === 'select' && setSelectedId(shape.id)}
                   onTap={() => drawingMode === 'select' && setSelectedId(shape.id)}
+                  onDragEnd={(e) => handleDragEnd(e, shape.id)}
+                  onTransformEnd={(e) => handleTransformEnd(e, shape.id)}
                 />
               );
             }

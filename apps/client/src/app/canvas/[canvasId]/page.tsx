@@ -44,16 +44,16 @@ const CanvasPage = () => {
     skip: !canvasId,
   });
 
-  
-  const { shapes, addShape, error: yjsError, isConnected, generateUniqueId } = useYjs(
-    canvasId, 
+
+  const { shapes, addShape, error: yjsError, isConnected, generateUniqueId, updateShapeById } = useYjs(
+    canvasId,
     data?.canvas?.canvasData
   );
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawingMode, setDrawingMode] = useState('select');
   const [selectedColor, setSelectedColor] = useState('#3B82F6');
-  
+
   const [updateCanvas, { loading: isSaving }] = useMutation(UPDATE_CANVAS_MUTATION);
 
   const handleSave = async () => {
@@ -101,7 +101,7 @@ const CanvasPage = () => {
         </div>
       </header>
       <div className='flex flex-grow h-[calc(100vh-4rem)] overflow-hidden'>
-        <Toolbar 
+        <Toolbar
           addShape={addShape}
           generateUniqueId={generateUniqueId}
           setDrawingMode={setDrawingMode}
@@ -110,14 +110,16 @@ const CanvasPage = () => {
           setSelectedColor={setSelectedColor}
         />
         <main className="flex-grow w-full h-full relative">
-          <CanvasEditor 
-            shapes={shapes} 
+          <CanvasEditor
+            shapes={shapes}
             selectedId={selectedId}
             setSelectedId={setSelectedId}
             drawingMode={drawingMode}
             setDrawingMode={setDrawingMode}
             selectedColor={selectedColor}
             addShape={addShape}
+            generateUniqueId={generateUniqueId}
+            updateShapeById={updateShapeById}
           />
         </main>
       </div>

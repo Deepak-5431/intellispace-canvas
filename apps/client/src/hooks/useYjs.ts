@@ -1,13 +1,14 @@
-import { useEffect, useState, useCallback } from 'react';
+// apps/client/src/hooks/useYjs.ts
+import { useEffect, useState, useCallback, useRef } from 'react';
 
 export const useYjs = (canvasId: string, initialData?: string) => {
   const [shapes, setShapes] = useState<any[]>([]);
   const [yShapes, setYShapes] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [provider, setProvider] = useState<any>(null);
   const [ydoc, setYdoc] = useState<any>(null);
   const [idCounter, setIdCounter] = useState<any>(null);
+  const providerRef = useRef<any>(null);
 
   const generateUniqueId = useCallback((): string => {
     if (!ydoc || !idCounter) {
@@ -20,7 +21,6 @@ export const useYjs = (canvasId: string, initialData?: string) => {
         const currentValue = idCounter.get('value') || 0;
         const newValue = currentValue + 1;
         idCounter.set('value', newValue);
-        
         newId = `${ydoc.clientID}-${newValue}`;
       });
       return newId;
@@ -30,22 +30,7 @@ export const useYjs = (canvasId: string, initialData?: string) => {
     }
   }, [ydoc, idCounter]);
 
-  const updateShape = useCallback((index: number, updatedProps: any) => {
-    if (yShapes && index >= 0 && index < yShapes.length) {
-      try {
-        yShapes.doc?.transact(() => {
-          const yMap = yShapes.get(index);
-          Object.entries(updatedProps).forEach(([key, value]) => {
-            yMap.set(key, value);
-          });
-        });
-      } catch (err) {
-        console.error('Error updating shape:', err);
-      }
-    }
-  }, [yShapes]);
-
-  // Add a function to update shape by ID (useful for pencil tool)
+  // Update shape by ID (for drag/resize operations)
   const updateShapeById = useCallback((shapeId: string, updatedProps: any) => {
     if (yShapes) {
       try {
@@ -66,12 +51,30 @@ export const useYjs = (canvasId: string, initialData?: string) => {
     }
   }, [yShapes]);
 
+  // Remove shape by ID
+  const removeShapeById = useCallback((shapeId: string) => {
+    if (yShapes) {
+      try {
+        yShapes.doc?.transact(() => {
+          for (let i = 0; i < yShapes.length; i++) {
+            const yMap = yShapes.get(i);
+            if (yMap.get('id') === shapeId) {
+              yShapes.delete(i, 1);
+              break;
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Error removing shape:', err);
+      }
+    }
+  }, [yShapes]);
+
   useEffect(() => {
     if (!canvasId) return;
 
     const initializeYjs = async () => {
       try {
-        // Dynamically import the provider
         const { SocketIOProvider } = await import('y-socket.io');
         const Y = await import('yjs');
         
@@ -85,7 +88,7 @@ export const useYjs = (canvasId: string, initialData?: string) => {
           {}
         );
 
-        setProvider(providerInstance);
+        providerRef.current = providerInstance;
 
         const yArray = ydocInstance.getArray('shapes');
         setYShapes(yArray);
@@ -96,7 +99,7 @@ export const useYjs = (canvasId: string, initialData?: string) => {
         }
         setIdCounter(counter);
 
-        
+        // Load initial data if provided and array is empty
         if (initialData && yArray.length === 0) {
           try {
             const parsedData = JSON.parse(initialData);
@@ -114,6 +117,7 @@ export const useYjs = (canvasId: string, initialData?: string) => {
           }
         }
 
+        // Observer for shape changes
         const observer = () => {
           try {
             setShapes(yArray.toArray().map((shape: any) => {
@@ -129,6 +133,7 @@ export const useYjs = (canvasId: string, initialData?: string) => {
         yArray.observe(observer);
         observer();
 
+        // Connection status handling
         providerInstance.on('status', (event: any) => {
           console.log('[Y.js] Provider status:', event.status);
           setIsConnected(event.status === 'connected');
@@ -154,8 +159,8 @@ export const useYjs = (canvasId: string, initialData?: string) => {
     initializeYjs();
 
     return () => {
-      if (provider) {
-        provider.disconnect();
+      if (providerRef.current) {
+        providerRef.current.disconnect();
       }
     };
   }, [canvasId, initialData]);
@@ -177,5 +182,13 @@ export const useYjs = (canvasId: string, initialData?: string) => {
     }
   }, [yShapes]);
 
-return { shapes, addShape, error, isConnected, generateUniqueId };
+  return { 
+    shapes, 
+    addShape, 
+    updateShapeById, 
+    removeShapeById,
+    error, 
+    isConnected, 
+    generateUniqueId 
+  };
 };
