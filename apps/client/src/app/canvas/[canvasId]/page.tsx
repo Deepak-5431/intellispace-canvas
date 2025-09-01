@@ -44,7 +44,7 @@ const CanvasPage = () => {
     skip: !canvasId,
   });
 
-  // Only destructure what's actually returned from useYjs
+  
   const { shapes, addShape, error: yjsError, isConnected, generateUniqueId } = useYjs(
     canvasId, 
     data?.canvas?.canvasData

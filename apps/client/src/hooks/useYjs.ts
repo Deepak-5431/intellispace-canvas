@@ -90,14 +90,13 @@ export const useYjs = (canvasId: string, initialData?: string) => {
         const yArray = ydocInstance.getArray('shapes');
         setYShapes(yArray);
 
-        // Create a shared counter for ID generation
         const counter = ydocInstance.getMap('idCounter');
         if (!counter.has('value')) {
           counter.set('value', 0);
         }
         setIdCounter(counter);
 
-        // Hydrate with initial data if provided and array is empty
+        
         if (initialData && yArray.length === 0) {
           try {
             const parsedData = JSON.parse(initialData);
