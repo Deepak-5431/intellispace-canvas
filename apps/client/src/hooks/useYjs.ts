@@ -1,6 +1,6 @@
 // apps/client/src/hooks/useYjs.ts
 import { useEffect, useState, useCallback, useRef } from 'react';
-
+import { ID } from 'appwrite';
 export const useYjs = (canvasId: string, initialData?: string) => {
   const [shapes, setShapes] = useState<any[]>([]);
   const [yShapes, setYShapes] = useState<any>(null);
@@ -12,7 +12,7 @@ export const useYjs = (canvasId: string, initialData?: string) => {
 
   const generateUniqueId = useCallback((): string => {
     if (!ydoc || !idCounter) {
-      return `local-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      return ID.unique();
     }
 
     try {
@@ -21,12 +21,12 @@ export const useYjs = (canvasId: string, initialData?: string) => {
         const currentValue = idCounter.get('value') || 0;
         const newValue = currentValue + 1;
         idCounter.set('value', newValue);
-        newId = `${ydoc.clientID}-${newValue}`;
+        newId = `${ID.unique()}-${newValue}`;
       });
       return newId;
     } catch (err) {
       console.error('Error generating ID:', err);
-      return `fallback-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+      return ID.unique();
     }
   }, [ydoc, idCounter]);
 
@@ -118,17 +118,25 @@ export const useYjs = (canvasId: string, initialData?: string) => {
         }
 
         // Observer for shape changes
-        const observer = () => {
-          try {
-            setShapes(yArray.toArray().map((shape: any) => {
-              return shape && typeof shape.toJSON === 'function' 
-                ? shape.toJSON() 
-                : shape;
-            }));
-          } catch (e) {
-            console.error('Error converting shapes:', e);
-          }
-        };
+// In the observer function in useYjs.ts
+const observer = () => {
+  try {
+    const rawShapes = yArray.toArray().map((shape: any) => {
+      return shape && typeof shape.toJSON === 'function' 
+        ? shape.toJSON() 
+        : shape;
+    });
+    
+    // Remove duplicates by ID
+    const uniqueShapes = rawShapes.filter((shape, index, self) => 
+      index === self.findIndex(s => s.id === shape.id)
+    );
+    
+    setShapes(uniqueShapes);
+  } catch (e) {
+    console.error('Error converting shapes:', e);
+  }
+};
         
         yArray.observe(observer);
         observer();
