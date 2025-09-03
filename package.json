@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.14.0",
-  "engines":{
-    "node": ">=22.0.0"
+  "engines": {
+    "node": ">=22.19.0"
   }
 }

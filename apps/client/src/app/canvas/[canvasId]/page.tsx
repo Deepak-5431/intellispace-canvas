@@ -52,7 +52,7 @@ const CanvasPage = () => {
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [drawingMode, setDrawingMode] = useState('select');
-  const [selectedColor, setSelectedColor] = useState('#3B82F6');
+  const [selectedColor, setSelectedColor] = useState('#808080');
 
   const [updateCanvas, { loading: isSaving }] = useMutation(UPDATE_CANVAS_MUTATION);
 
