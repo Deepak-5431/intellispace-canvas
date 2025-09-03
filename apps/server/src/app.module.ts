@@ -7,7 +7,8 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CanvasesModule } from './canvases/canvases.module';
-import { YjsGateway } from './yjs/yjs.gateway';
+import { UsersModule } from './users/users.module';
+import { YjsModule } from './yjs/yjs.module';
 
 @Module({
   imports: [
@@ -17,12 +18,14 @@ import { YjsGateway } from './yjs/yjs.gateway';
       driver: ApolloDriver,
       autoSchemaFile: join(process.cwd(), 'apps/server/src/schema.gql'),
       sortSchema: true,
-
       context:({req}) => ({req}),
       playground: true,
     }),
-    CanvasesModule],
+    CanvasesModule,
+    UsersModule,
+    YjsModule
+  ],
   controllers: [AppController],
-  providers: [AppService, YjsGateway],
+  providers: [AppService],
 })
 export class AppModule {}

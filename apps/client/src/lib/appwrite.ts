@@ -16,3 +16,7 @@ export const getJwt = async () => {
         return null;
     }
 };
+
+if (typeof window !== 'undefined') { 
+  (window as any).appwrite = { account }; 
+}

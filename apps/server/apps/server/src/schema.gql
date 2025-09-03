@@ -19,10 +19,25 @@ type Query {
   canvas(id: ID!): Canvas
   canvases(ownerId: String!): [Canvas!]!
   sayHello: String!
+  user(id: ID!): User
+  users(limit: Int, offset: Int, search: Int): UsersResponse!
 }
 
 input UpdateCanvasInput {
   canvasData: String
   id: ID!
   name: String
+}
+
+type User {
+  email: String!
+  id: ID!
+}
+
+type UsersResponse {
+  hasMore: Boolean!
+  limit: Int
+  offset: Int
+  total: Int!
+  users: [User!]!
 }
