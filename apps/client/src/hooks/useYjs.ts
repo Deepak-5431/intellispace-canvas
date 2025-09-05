@@ -51,7 +51,7 @@ export const useYjs = (canvasId: string, initialData?: string) => {
     }
   }, [yShapes]);
 
-  // Remove shape by ID
+  
   const removeShapeById = useCallback((shapeId: string) => {
     if (yShapes) {
       try {
