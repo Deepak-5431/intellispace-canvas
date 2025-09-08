@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable,NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Canvas } from './schemas/canvas.schema';
@@ -36,5 +36,29 @@ export class CanvasesService {
 
   async findOne(id: string) : Promise<Canvas | null>{
     return this.canvasModel.findById(id).exec();
+  }
+  
+  async addCollaborator(canvasId: string, userId: string): Promise<Canvas> {
+    const canvas = await this.canvasModel.findById(canvasId);
+    
+    if (!canvas) {
+      throw new NotFoundException('Canvas not found');
+    }
+    
+    if (!canvas.collaborators.includes(userId)) {
+      canvas.collaborators.push(userId);
+      await canvas.save();
+    }
+    
+    return canvas;
+  }
+
+  async isUserCollaborator(canvasId: string, userId: string): Promise<boolean> {
+    const canvas = await this.canvasModel.findById(canvasId);
+    if(!canvas){
+      return false;
+
+    }
+    return canvas.ownerId === userId || canvas.collaborators.includes(userId);
   }
 }

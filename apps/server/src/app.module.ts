@@ -9,6 +9,7 @@ import { AppService } from './app.service';
 import { CanvasesModule } from './canvases/canvases.module';
 import { UsersModule } from './users/users.module';
 import { YjsModule } from './yjs/yjs.module';
+import { InvitationsModule } from './invitations/invitations.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { YjsModule } from './yjs/yjs.module';
     }),
     CanvasesModule,
     UsersModule,
-    YjsModule
+    YjsModule,
+    InvitationsModule
   ],
   controllers: [AppController],
   providers: [AppService],

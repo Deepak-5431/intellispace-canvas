@@ -290,7 +290,7 @@ useEffect(() => {
                       key={canvas.id}
                       className="p-4 bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg transform hover:-translate-y-1 transition relative group"
                     >
-                      {/* Three-dots menu button */}
+                      
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={(e) => {

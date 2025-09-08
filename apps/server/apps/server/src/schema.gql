@@ -9,8 +9,39 @@ type Canvas {
   ownerId: String!
 }
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Invitation {
+  canvasId: ID!
+  createdAt: DateTime!
+  expiresAt: DateTime!
+  fromUserId: String!
+  id: ID!
+  isActive: Boolean!
+  isExpired: Boolean!
+  message: String
+  status: InvitationStatus!
+  toUserId: String!
+  updatedAt: DateTime!
+}
+
+"""The status of an invitation"""
+enum InvitationStatus {
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  PENDING
+}
+
 type Mutation {
+  acceptInvitation(invitationId: ID!): Invitation!
+  cancelInvitation(invitationId: ID!): Invitation!
   createCanvas(name: String!, ownerId: String!, ownerName: String!): Canvas!
+  createInvitation(canvasId: ID!, message: String, toUserId: ID!): Invitation!
+  declineInvitation(invitationId: ID!): Invitation!
   removeCanvas(id: ID!): Canvas
   updateCanvas(updateCanvasInput: UpdateCanvasInput!): Canvas!
 }
@@ -18,6 +49,8 @@ type Mutation {
 type Query {
   canvas(id: ID!): Canvas
   canvases(ownerId: String!): [Canvas!]!
+  invitation(invitationId: ID!): Invitation!
+  myInvitations: [Invitation!]!
   sayHello: String!
   user(id: ID!): User
   users(limit: Int, offset: Int, search: Int): UsersResponse!

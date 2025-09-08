@@ -8,6 +8,7 @@ import { Canvas,CanvasSchema } from './schemas/canvas.schema';
   imports:[
     MongooseModule.forFeature([{ name: Canvas.name, schema: CanvasSchema}]),
   ],
-  providers: [CanvasesService, CanvasesResolver]
+  providers: [CanvasesService, CanvasesResolver],
+  exports: [CanvasesService],
 })
 export class CanvasesModule {}
