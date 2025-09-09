@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { account } from './appwrite';
 import { Models } from 'appwrite';
 
-// This interface defines the "shape" of our store
+
 interface UserState {
   currentUser: Models.User<Models.Preferences> | null;
   isLoading: boolean;

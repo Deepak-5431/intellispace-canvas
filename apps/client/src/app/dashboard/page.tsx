@@ -53,6 +53,17 @@ const REMOVE_CANVAS_MUTATION = gql`
   }
 `;
 
+
+const CREATE_INVITATION_MUTATION = gql`
+mutation CreateInvitation($canvasId: ID!, $toUserId: ID!, $message: String){
+createInvitation(canvasId: $canvasId, toUserId: $toUserId, message: $message)
+{
+id
+status
+}
+}
+`
+
 interface User {
   id: string;
   email: string;
@@ -68,7 +79,7 @@ interface Canvas {
 const DashboardPage = () => {
   const { currentUser, isLoading: isUserLoading } = useUserStore();
   const router = useRouter();
-  const [isShareModalOpen,setIsShareModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const [selectedCanvas, setSelectedCanvas] = useState<any>(null);
@@ -76,6 +87,8 @@ const DashboardPage = () => {
   const [canvasesState, setCanvasesState] = useState<any[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [createName, setCreateName] = useState("");
+  const [invitationMessage, setInvitationMessage] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
 
   const { data, loading: isCanvasesLoading, error: canvasesError } = useQuery(GET_USER_CANVASES, {
@@ -83,26 +96,26 @@ const DashboardPage = () => {
     skip: !currentUser,
   });
 
-  const { data: usersData, loading: isUsersLoading } = useQuery<{ users: { users: User[] } }>(GET_ALL_USERS, {
-  skip: !isShareModalOpen,
-});
-  
+  const { data: usersData, loading: isUsersLoading, error: usersError } = useQuery<{ users: { users: User[] } }>(GET_ALL_USERS, {
+    skip: !isShareModalOpen,
+  });
+
   useEffect(() => {
-  const handleClickOutsideShareModal = (event: MouseEvent) => {
-    const shareModal = document.querySelector('[data-share-modal]');
-    if (shareModal && !shareModal.contains(event.target as Node)) {
-      setIsShareModalOpen(false);
+    const handleClickOutsideShareModal = (event: MouseEvent) => {
+      const shareModal = document.querySelector('[data-share-modal]');
+      if (shareModal && !shareModal.contains(event.target as Node)) {
+        setIsShareModalOpen(false);
+      }
+    };
+
+    if (isShareModalOpen) {
+      document.addEventListener('mousedown', handleClickOutsideShareModal);
     }
-  };
 
-  if (isShareModalOpen) {
-    document.addEventListener('mousedown', handleClickOutsideShareModal);
-  }
-
-  return () => {
-    document.removeEventListener('mousedown', handleClickOutsideShareModal);
-  };
-}, [isShareModalOpen]);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutsideShareModal);
+    };
+  }, [isShareModalOpen]);
 
   useEffect(() => {
     if (data?.canvases) setCanvasesState(data.canvases);
@@ -215,8 +228,28 @@ const DashboardPage = () => {
 
   };
 
+  const [createInvitation, { loading: isInviting }] = useMutation(CREATE_INVITATION_MUTATION, {
+    onCompleted: () => {
+      setIsShareModalOpen(false);
+
+      alert("Invitation sent successfully!");
+    },
+    onError: (error) => {
+      console.error("Invitation failed:", error);
+      alert(`Failed to send invitation: ${error.message}`);
+    },
+  });
+
   const handleInvite = (userId: string) => {
-    alert(`Invitation sent for canvas "${selectedCanvas?.name}" to user ID: ${userId}`);
+    if (!selectedCanvas) return;
+
+    createInvitation({
+      variables: {
+        canvasId: selectedCanvas.id,
+        toUserId: userId,
+        message: invitationMessage || undefined
+      }
+    });
   }
 
   useEffect(() => {
@@ -230,16 +263,16 @@ const DashboardPage = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-useEffect(() => {
-  const onKey = (e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      if (isRenameModalOpen) setIsRenameModalOpen(false);
-      if (isShareModalOpen) setIsShareModalOpen(false);
-    }
-  };
-  document.addEventListener("keydown", onKey);
-  return () => document.removeEventListener("keydown", onKey);
-}, [isRenameModalOpen, isShareModalOpen]); 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isRenameModalOpen) setIsRenameModalOpen(false);
+        if (isShareModalOpen) setIsShareModalOpen(false);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isRenameModalOpen, isShareModalOpen]);
 
   if (isUserLoading || !currentUser) {
     return <div>Loading...</div>;
@@ -290,7 +323,7 @@ useEffect(() => {
                       key={canvas.id}
                       className="p-4 bg-white border border-gray-200 rounded-lg shadow hover:shadow-lg transform hover:-translate-y-1 transition relative group"
                     >
-                      
+
                       <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={(e) => {
@@ -424,49 +457,71 @@ useEffect(() => {
             </form>
           </div>
         </div>
-        
+
       )}
-     
-{isShareModalOpen && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md" data-share-modal>
-      <h3 className="text-lg font-bold mb-2">Share "{selectedCanvas?.name}"</h3>
-      <p className="text-sm text-gray-600 mb-4">Select a user to invite them to collaborate.</p>
-      
-      {isUsersLoading ? (
-        <div className="flex justify-center py-4">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+
+      {isShareModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-md" data-share-modal>
+            <h3 className="text-lg font-bold mb-2">Share "{selectedCanvas?.name}"</h3>
+            <p className="text-sm text-gray-600 mb-4">Select a user to invite them to collaborate.</p>
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search users by email..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+              />
+            </div>
+            {usersError ? (
+              <div className="text-red-500 text-sm mb-4 p-2 bg-red-50 rounded">
+                Failed to load users: {usersError.message}
+              </div>
+            ) : isUsersLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : (
+              <ul className="max-h-60 overflow-y-auto space-y-2">
+                {/* UPDATE THE FILTERING TO INCLUDE SEARCH */}
+                {usersData?.users?.users
+                  ?.filter((user: User) =>
+                    user.id !== currentUser?.$id &&
+                    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+                  )
+                  .map((user: User) => (
+                    <li key={user.id} className="flex justify-between items-center p-2 border rounded-md">
+                      <span className="text-gray-800">{user.email}</span>
+                      <button
+                        onClick={() => handleInvite(user.id)}
+                        disabled={isInviting}
+                        className="bg-green-500 text-white text-sm font-bold py-1 px-3 rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
+                      >
+                        {isInviting && <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-1"></div>}
+                        {isInviting ? "Sending..." : "Invite"}
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            )}
+
+            <div className="flex justify-end mt-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsShareModalOpen(false);
+                  setSearchTerm(""); // Also reset search term when closing
+                  setInvitationMessage("");
+                }}
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         </div>
-      ) : (
-        <ul className="max-h-60 overflow-y-auto space-y-2">
-          {usersData?.users?.users
-            ?.filter((user: User) => user.id !== currentUser?.$id)
-            .map((user: User) => (
-              <li key={user.id} className="flex justify-between items-center p-2 border rounded-md">
-                <span className="text-gray-800">{user.email}</span>
-                <button 
-                  onClick={() => handleInvite(user.id)} 
-                  className="bg-green-500 text-white text-sm font-bold py-1 px-3 rounded hover:bg-green-600 transition-colors"
-                >
-                  Invite
-                </button>
-              </li>
-            ))}
-        </ul>
       )}
-      
-      <div className="flex justify-end mt-4">
-        <button 
-          type="button" 
-          onClick={() => setIsShareModalOpen(false)} 
-          className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 transition-colors"
-        >
-          Close
-        </button>
-      </div>
-    </div>
-  </div>
-)}
     </>
   );
 };
