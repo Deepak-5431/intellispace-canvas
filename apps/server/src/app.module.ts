@@ -10,6 +10,7 @@ import { CanvasesModule } from './canvases/canvases.module';
 import { UsersModule } from './users/users.module';
 import { YjsModule } from './yjs/yjs.module';
 import { InvitationsModule } from './invitations/invitations.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { InvitationsModule } from './invitations/invitations.module';
       context:({req}) => ({req}),
       playground: true,
     }),
+    AuthModule,
     CanvasesModule,
     UsersModule,
     YjsModule,

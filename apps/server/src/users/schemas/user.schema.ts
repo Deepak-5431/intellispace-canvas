@@ -1,25 +1,36 @@
 // apps/server/src/users/schemas/user.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
-export type UserDocument = User & Document;
-
-@Schema()
+@Schema({
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: (_: any, ret: Record<string, any>) => {
+      ret.id = ret._id;      // add id alias
+      delete ret._id;        // remove internal _id
+      if (ret.__v !== undefined) {
+        delete ret.__v;      // remove version key if exists
+      }
+      return ret;
+    },
+  },
+})
 export class User {
-  @Prop({ type: String, required: true, unique: true })
-  userId: string; // Stores Appwrite User ID
+  @Prop({ type: String, required: true, unique: true, index: true })
+  userId: string;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ type: String, required: true, unique: true, index: true })
   email: string;
 
   @Prop({ type: String })
   name?: string;
-
-  @Prop({ type: Date, default: Date.now })
-  createdAt: Date;
-
-  @Prop({ type: Date, default: Date.now })
-  updatedAt: Date;
 }
+
+// ✅ Explicitly bind _id to ObjectId
+export type UserDocument = Document<unknown, {}, User> &
+  User & {
+    _id: Types.ObjectId;
+  };
 
 export const UserSchema = SchemaFactory.createForClass(User);
