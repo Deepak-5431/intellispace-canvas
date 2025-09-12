@@ -8,7 +8,6 @@ import { useState, useRef, useEffect } from "react";
 import { gql, useQuery, useMutation } from "@apollo/client";
 import { Bell, LogOut, User, Settings, LayoutDashboard, Mail, X, Check, Clock } from 'lucide-react';
 
-// --- ENHANCED QUERY WITH MORE DATA ---
 const GET_MY_INVITATIONS = gql`
   query GetMyInvitations {
     myInvitations {
@@ -24,12 +23,15 @@ const GET_MY_INVITATIONS = gql`
   }
 `;
 
-// --- ADD MUTATIONS FOR ACCEPTING/DECLINING ---
+
 const ACCEPT_INVITATION_MUTATION = gql`
-  mutation AcceptInvitation($invitationId: ID!) {
-    acceptInvitation(invitationId: $invitationId) {
+  mutation AcceptInvitation($invitational: ID!) {
+    acceptInvitation(invitational: $invitational) {
       id
       status
+      canvasId
+      fromUserId
+      toUserId
     }
   }
 `;
@@ -50,42 +52,47 @@ const Navbar = () => {
   const router = useRouter();
   const [showDropdown, setShowDropdown] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [processingInvitation, setProcessingInvitation] = useState<string | null>(null);
 
-  // --- ENHANCED QUERY WITH ERROR HANDLING ---
   const { data: invitationsData, loading: invitationsLoading, error: invitationsError, refetch } = useQuery(GET_MY_INVITATIONS, {
     skip: !currentUser,
-    pollInterval: 30000, // Refetch every 30 seconds
+    pollInterval: 30000, 
   });
 
   const [acceptInvitation] = useMutation(ACCEPT_INVITATION_MUTATION, {
-    onCompleted: () => {
-      refetch(); // Refresh invitations after accepting
+    onCompleted: (data) => {
+      console.log("Invitation accepted:", data);
+      setProcessingInvitation(null);
+      refetch();
+      
+    },
+    onError: (error) => {
+      console.error("Error accepting invitation:", error);
+      setProcessingInvitation(null);
+     
     },
   });
 
   const [declineInvitation] = useMutation(DECLINE_INVITATION_MUTATION, {
     onCompleted: () => {
-      refetch(); // Refresh invitations after declining
+      refetch(); 
+    },
+    onError: (error) => {
+      console.error("Error declining invitation:", error);
     },
   });
 
   const pendingInvitations = invitationsData?.myInvitations?.filter(
-    (inv: any) => inv.status === 'pending'
+    (inv: any) => inv.status === 'PENDING' || inv.status === 'pending'
   ) || [];
 
   const handleLogout = async () => {
-    console.log("1. Logout process started...");
     try {
       await account.deleteSession('current');
-      console.log("2. Appwrite session deleted successfully.");
-
       await fetchUser();
-      console.log("3. Global user state has been updated.");
-
       router.push('/login');
-      console.log("4. Redirecting to /login page.");
     } catch (error) {
-      console.error("5. FAILED to log out:", error);
+      console.error("Failed to log out:", error);
     }
   };
 
@@ -100,15 +107,26 @@ const Navbar = () => {
     return "U";
   };
 
-  const handleAcceptInvitation = (invitationId: string, canvasId: string) => {
-    acceptInvitation({ variables: { invitationId } });
+  const handleAcceptInvitation = async (invitationId: string) => {
+    setProcessingInvitation(invitationId);
+    try {
+      await acceptInvitation({ 
+        variables: { invitational: invitationId } 
+      });
+    } catch (error) {
+      console.error("Failed to accept invitation:", error);
+      setProcessingInvitation(null);
+    }
   };
 
-  const handleDeclineInvitation = (invitationId: string) => {
-    declineInvitation({ variables: { invitationId } });
+  const handleDeclineInvitation = async (invitationId: string) => {
+    try {
+      await declineInvitation({ variables: { invitationId } });
+    } catch (error) {
+      console.error("Failed to decline invitation:", error);
+    }
   };
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -122,7 +140,6 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  // Close notifications when clicking escape
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -149,10 +166,8 @@ const Navbar = () => {
             IntelliSpace Canvas
           </Link>
           <div className="flex items-center gap-3">
-            
             {currentUser ? (
               <>
-                {/* Notifications Bell */}
                 <div className="relative" ref={notificationsRef}>
                   <button
                     onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
@@ -167,7 +182,6 @@ const Navbar = () => {
                     )}
                   </button>
 
-                  {/* Notifications Dropdown */}
                   {isNotificationsOpen && (
                     <div className="absolute right-0 mt-2 w-96 bg-gray-900 border border-red-700 rounded-lg shadow-xl z-50">
                       <div className="p-4 border-b border-red-700">
@@ -188,7 +202,7 @@ const Navbar = () => {
                           </div>
                         ) : invitationsError ? (
                           <div className="p-4 text-red-400 text-sm">
-                            Failed to load notifications
+                            Failed to load notifications: {invitationsError.message}
                           </div>
                         ) : pendingInvitations.length === 0 ? (
                           <div className="p-8 text-center text-gray-400">
@@ -219,11 +233,16 @@ const Navbar = () => {
                                 </div>
                                 <div className="flex gap-2 ml-4">
                                   <button
-                                    onClick={() => handleAcceptInvitation(invitation.id, invitation.canvasId)}
-                                    className="p-1.5 bg-green-600 hover:bg-green-700 rounded transition-colors text-white"
+                                    onClick={() => handleAcceptInvitation(invitation.id)}
+                                    disabled={processingInvitation === invitation.id}
+                                    className="p-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded transition-colors text-white"
                                     title="Accept"
                                   >
-                                    <Check className="h-4 w-4" />
+                                    {processingInvitation === invitation.id ? (
+                                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                      <Check className="h-4 w-4" />
+                                    )}
                                   </button>
                                   <button
                                     onClick={() => handleDeclineInvitation(invitation.id)}
@@ -253,7 +272,6 @@ const Navbar = () => {
                   )}
                 </div>
 
-                {/* User Avatar Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button
                     onClick={handleAvatarClick}

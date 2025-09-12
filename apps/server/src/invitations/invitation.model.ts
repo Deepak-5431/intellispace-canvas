@@ -41,4 +41,10 @@ export class Invitation {
 
   @Field()
   isActive: boolean;
+
+  @Field({ nullable: true })
+  canvasName?: string
+
+  @Field({nullable: true})
+  fromUserEmail?: string
 }

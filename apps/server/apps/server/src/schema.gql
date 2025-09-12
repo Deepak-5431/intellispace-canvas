@@ -16,8 +16,10 @@ scalar DateTime
 
 type Invitation {
   canvasId: ID!
+  canvasName: String
   createdAt: DateTime!
   expiresAt: DateTime!
+  fromUserEmail: String
   fromUserId: String!
   id: ID!
   isActive: Boolean!
