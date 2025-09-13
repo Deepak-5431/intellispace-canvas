@@ -87,7 +87,7 @@ export class InvitationsService {
         $lookup: {
           from: 'users', 
           localField: 'fromUserId', 
-          foreignField: '_id',      
+          foreignField: 'userid',    //changing here from _id to userid  
           as: 'fromUser',
         },
       },

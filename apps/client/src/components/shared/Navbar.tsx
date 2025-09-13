@@ -25,8 +25,8 @@ const GET_MY_INVITATIONS = gql`
 
 
 const ACCEPT_INVITATION_MUTATION = gql`
-  mutation AcceptInvitation($invitational: ID!) {
-    acceptInvitation(invitational: $invitational) {
+  mutation AcceptInvitation($invitationId: ID!) {
+    acceptInvitation(invitationId: $invitationId) {
       id
       status
       canvasId
@@ -111,7 +111,7 @@ const Navbar = () => {
     setProcessingInvitation(invitationId);
     try {
       await acceptInvitation({ 
-        variables: { invitational: invitationId } 
+        variables: { invitationId: invitationId } 
       });
     } catch (error) {
       console.error("Failed to accept invitation:", error);
@@ -221,10 +221,10 @@ const Navbar = () => {
                                     Invitation to collaborate
                                   </p>
                                   <p className="text-xs text-gray-300 mt-1">
-                                    From: {invitation.fromUserEmail || 'Unknown user'}
+                                    From: {invitation.fromUserEmail ||  `User ${invitation.fromUserId?.substring(0,8)}`}
                                   </p>
                                   <p className="text-xs text-gray-300">
-                                    Canvas: {invitation.canvasName || 'Untitled'}
+                                    Canvas: {invitation.canvasName || `New canva`}
                                   </p>
                                   <p className="text-xs text-yellow-400 mt-1">
                                     <Clock className="h-3 w-3 inline mr-1" />
