@@ -45,14 +45,22 @@ type Mutation {
   createCanvas(name: String!, ownerId: String!, ownerName: String!): Canvas!
   createInvitation(canvasId: ID!, message: String, toUserId: ID!): Invitation!
   declineInvitation(invitationId: ID!): Invitation!
+  leaveCanvas(canvasId: ID!): MutationResponse!
   removeCanvas(id: ID!): Canvas
+  removeCollaborator(canvasId: ID!, userId: ID!): MutationResponse!
   updateCanvas(updateCanvasInput: UpdateCanvasInput!): Canvas!
+}
+
+type MutationResponse {
+  message: String
+  success: Boolean!
 }
 
 type Query {
   canvas(id: ID!): Canvas
   canvases(ownerId: String!): [Canvas!]!
   invitation(invitationId: ID!): Invitation!
+  myCollaboratingCanvases: [Canvas!]!
   myInvitations: [Invitation!]!
   sayHello: String!
   user(id: ID!): User

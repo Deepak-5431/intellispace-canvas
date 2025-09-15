@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document,  Schema as mongooseSchema, Types } from 'mongoose';
+import { Document,  Schema as mongooseSchema } from 'mongoose';
 
 export enum InvitationStatus {
   PENDING = 'pending',
@@ -17,12 +17,12 @@ export enum InvitationStatus {
 
 export class Invitation {
   @Prop({
-    type: mongooseSchema.Types.ObjectId,
-    ref:'Canvas',
+    type: String,
+    //ref:'Canvas',
     required: true,
     index: true
   })
-  canvasId: Types.ObjectId;
+  canvasId: string;
 
   @Prop({
     type: String,

@@ -14,7 +14,7 @@ export class InvitationsService {
   ) {}
 
   async create(
-    canvasId: Types.ObjectId,
+    canvasId: string,
     fromUserId: string, 
     toUserId: string,   
     message?: string,

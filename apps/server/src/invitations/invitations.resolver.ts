@@ -4,7 +4,6 @@ import { Invitation } from './invitation.model';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/currentUser.decorator';
-import { Types } from 'mongoose';
 
 
 interface UserPayload {
@@ -25,8 +24,7 @@ export class InvitationsResolver {
     @Args('message', { type: () => String, nullable: true }) message: string,
     @CurrentUser() user: UserPayload,
   ) {
-    const canvasObjectId = new Types.ObjectId(canvasId);
-    return this.invitationsService.create(canvasObjectId, user.id, toUserId, message);
+    return this.invitationsService.create(canvasId, user.id, toUserId, message);
   }
 
   @Query(() => [Invitation], { name: 'myInvitations' })
