@@ -64,12 +64,17 @@ const Navbar = () => {
       console.log("Invitation accepted:", data);
       setProcessingInvitation(null);
       refetch();
-      
+      if(data.acceptInvitation?.canvasId){
+        router.push(`/canvas/${data.acceptInvitation.canvasId}`);
+        alert(`Invitation accepted! Redirecting to canvas: ${data.acceptInvitation.canvasId}`);
+      }else{
+        alert('invitation accepted,no canvas found');
+      }
     },
     onError: (error) => {
       console.error("Error accepting invitation:", error);
       setProcessingInvitation(null);
-     
+     alert(`Failed to accept invitation: ${error.message}`);
     },
   });
 
