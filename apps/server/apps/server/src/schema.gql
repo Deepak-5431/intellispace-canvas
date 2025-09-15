@@ -9,15 +9,59 @@ type Canvas {
   ownerId: String!
 }
 
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Invitation {
+  canvasId: ID!
+  canvasName: String
+  createdAt: DateTime!
+  expiresAt: DateTime!
+  fromUserEmail: String
+  fromUserId: String!
+  id: ID!
+  isActive: Boolean!
+  isExpired: Boolean!
+  message: String
+  status: InvitationStatus!
+  toUserId: String!
+  updatedAt: DateTime!
+}
+
+"""The status of an invitation"""
+enum InvitationStatus {
+  ACCEPTED
+  CANCELED
+  DECLINED
+  EXPIRED
+  PENDING
+}
+
 type Mutation {
+  acceptInvitation(invitationId: ID!): Invitation!
+  cancelInvitation(invitationId: ID!): Invitation!
   createCanvas(name: String!, ownerId: String!, ownerName: String!): Canvas!
+  createInvitation(canvasId: ID!, message: String, toUserId: ID!): Invitation!
+  declineInvitation(invitationId: ID!): Invitation!
+  leaveCanvas(canvasId: ID!): MutationResponse!
   removeCanvas(id: ID!): Canvas
+  removeCollaborator(canvasId: ID!, userId: ID!): MutationResponse!
   updateCanvas(updateCanvasInput: UpdateCanvasInput!): Canvas!
+}
+
+type MutationResponse {
+  message: String
+  success: Boolean!
 }
 
 type Query {
   canvas(id: ID!): Canvas
   canvases(ownerId: String!): [Canvas!]!
+  invitation(invitationId: ID!): Invitation!
+  myCollaboratingCanvases: [Canvas!]!
+  myInvitations: [Invitation!]!
   sayHello: String!
   user(id: ID!): User
   users(limit: Int, offset: Int, search: Int): UsersResponse!

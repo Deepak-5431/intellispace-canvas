@@ -14,6 +14,10 @@ export class Canvas extends Document{
 
   @Prop({type:String,required: false})
   canvasData? : string;
+  
+  @Prop({ type: [String], default: [] })
+  collaborators: string[];
+
 }
 
 export const CanvasSchema = SchemaFactory.createForClass(Canvas);
