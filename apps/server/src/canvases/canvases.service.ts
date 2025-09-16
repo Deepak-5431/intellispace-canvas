@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common'; // Added ForbiddenException
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common'; // Added ForbiddenException
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Canvas } from './schemas/canvas.schema';
@@ -39,14 +39,18 @@ export class CanvasesService {
     const canvas = await this.canvasModel.findById(canvasId);
     
     if (!canvas) {
-      throw new NotFoundException('Canvas not found');
+      throw new BadRequestException('Canvas not found');
+    }
+
+    if(canvas.ownerId === userId) {
+      throw new BadRequestException('user is already a collaborator')
     }
     
     if (!canvas.collaborators.includes(userId)) {
-      canvas.collaborators.push(userId);
-      await canvas.save();
+      throw new BadRequestException('User is already a collaborator.');
     }
     
+    canvas.collaborators.push(userId);
     return canvas;
   }
 

@@ -3,7 +3,7 @@ import { Resolver, Mutation, Args, ObjectType, Field, ID, Query, InputType } fro
 import { CanvasesService } from './canvases.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CurrentUser } from 'src/auth/currentUser.decorator';
-import { Canvas as CanvasSchema } from './schemas/canvas.schema';
+//import { Canvas as CanvasSchema } from './schemas/canvas.schema';
 
 @ObjectType()
 class MutationResponse {
@@ -16,6 +16,8 @@ class MutationResponse {
 
 interface UserPayload {
   id: string;
+  name?: string;
+  email?: string;
 }
 
 @ObjectType()
@@ -29,8 +31,14 @@ class Canvas {
   @Field()
   ownerId: string;
 
+  @Field()
+  ownerName: string;
+
   @Field({ nullable: true })
   canvasData?: string;
+
+  @Field(() => [String])
+  collaborators: string[];
 }
 
 @InputType()
@@ -69,10 +77,10 @@ export class CanvasesResolver {
   @UseGuards(AuthGuard)
   async createCanvas(
     @Args('name') name: string,
-    @Args('ownerId') ownerId: string,
-    @Args('ownerName') ownerName: string,
+    @CurrentUser() user: UserPayload,
   ) {
-    return this.canvasesService.create(name, ownerId, ownerName);
+    const ownerName = user.name || user.email || 'Unknown User';
+    return this.canvasesService.create(name, user.id, ownerName);
   }
 
   @Mutation(() => Canvas)

@@ -4,9 +4,11 @@
 
 type Canvas {
   canvasData: String
+  collaborators: [String!]!
   id: ID!
   name: String!
   ownerId: String!
+  ownerName: String!
 }
 
 """
@@ -42,7 +44,7 @@ enum InvitationStatus {
 type Mutation {
   acceptInvitation(invitationId: ID!): Invitation!
   cancelInvitation(invitationId: ID!): Invitation!
-  createCanvas(name: String!, ownerId: String!, ownerName: String!): Canvas!
+  createCanvas(name: String!): Canvas!
   createInvitation(canvasId: ID!, message: String, toUserId: ID!): Invitation!
   declineInvitation(invitationId: ID!): Invitation!
   leaveCanvas(canvasId: ID!): MutationResponse!
