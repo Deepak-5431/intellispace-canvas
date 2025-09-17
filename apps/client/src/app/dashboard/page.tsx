@@ -27,10 +27,20 @@ const GET_ALL_USERS = gql`
    }
   }
 `
-
+{/*
 const CREATE_CANVAS_MUTATION = gql`
   mutation CreateCanvas($name: String!, $ownerId: String!, $ownerName: String!) {
     createCanvas(name: $name, ownerId: $ownerId, ownerName: $ownerName) {
+      id
+    }
+  }
+`;
+
+*/}
+
+const CREATE_CANVAS_MUTATION = gql`
+  mutation CreateCanvas($name: String!) {
+    createCanvas(name: $name) {
       id
     }
   }
@@ -173,8 +183,8 @@ const DashboardPage = () => {
       const response = await createCanvas({
         variables: {
           name,
-          ownerId: currentUser.$id,
-          ownerName: currentUser.name || currentUser.email
+         // ownerId: currentUser.$id,
+        //  ownerName: currentUser.name || currentUser.email
         }
       });
       const newId = response.data.createCanvas.id;

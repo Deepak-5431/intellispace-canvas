@@ -35,24 +35,31 @@ export class CanvasesService {
     return this.canvasModel.findById(id).exec();
   }
 
-  async addCollaborator(canvasId: string, userId: string): Promise<Canvas> {
-    const canvas = await this.canvasModel.findById(canvasId);
-    
-    if (!canvas) {
-      throw new BadRequestException('Canvas not found');
-    }
+ // In apps/server/src/canvases/canvases.service.ts
 
-    if(canvas.ownerId === userId) {
-      throw new BadRequestException('user is already a collaborator')
-    }
-    
-    if (!canvas.collaborators.includes(userId)) {
-      throw new BadRequestException('User is already a collaborator.');
-    }
-    
-    canvas.collaborators.push(userId);
-    return canvas;
+async addCollaborator(canvasId: string, userId: string): Promise<Canvas> {
+  const canvas = await this.canvasModel.findById(canvasId);
+  
+  if (!canvas) {
+    throw new BadRequestException('Canvas not found');
   }
+
+  // Check if the user is the owner, which means they are already a member.
+  if (canvas.ownerId === userId) {
+    throw new BadRequestException('User is the owner of this canvas.');
+  }
+  
+  // FIX #1: The logic check is now correct.
+  // It throws an error if the user IS ALREADY in the array.
+  if (canvas.collaborators.includes(userId)) {
+    throw new BadRequestException('User is already a collaborator.');
+  }
+  
+  canvas.collaborators.push(userId);
+
+  // FIX #2: You must call .save() to persist the changes to the database.
+  return canvas.save();
+}
 
   async isUserCollaborator(canvasId: string, userId: string): Promise<boolean> {
     const canvas = await this.canvasModel.findById(canvasId);

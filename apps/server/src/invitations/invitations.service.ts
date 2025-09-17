@@ -131,33 +131,54 @@ export class InvitationsService {
     return invitation;
   }
 
-  async acceptInvitation(invitationId: string, userId: string): Promise<Invitation> {
-    const invitation = await this.invitationModel.findById(invitationId);
+// In apps/server/src/invitations/invitations.service.ts
 
-    if (!invitation) {
-      throw new NotFoundException('Invitation not found');
-    }
+async acceptInvitation(invitationId: string, userId: string): Promise<Invitation> {
+  // Step 1: Atomically find a PENDING invitation and update it to ACCEPTED.
+  const invitation = await this.invitationModel.findOneAndUpdate(
+    {
+      _id: invitationId,
+      toUserId: userId,
+      status: InvitationStatus.PENDING,
+      expiresAt: { $gt: new Date() },
+    },
+    {
+      $set: { status: InvitationStatus.ACCEPTED },
+    },
+    { new: false }, // Return the document *before* the update
+  );
 
-    if (invitation.toUserId !== userId) {
-      throw new ConflictException('You can only accept your own invitations');
-    }
-
-    if (invitation.status !== InvitationStatus.PENDING) {
-      throw new ConflictException('Invitation is no longer valid');
-    }
-
-    if (invitation.expiresAt < new Date()) {
-      throw new ConflictException('Invitation has expired');
-    }
-
-    await this.canvasesService.addCollaborator(
-      invitation.canvasId.toString(), 
-      userId, 
-    );
-
-    invitation.status = InvitationStatus.ACCEPTED;
-    return invitation.save();
+  // Step 2: If no invitation was found and updated, it's no longer valid.
+  if (!invitation) {
+    const existingInv = await this.invitationModel.findById(invitationId);
+    if (!existingInv) throw new NotFoundException('Invitation not found');
+    throw new ConflictException('Invitation is no longer valid or has already been processed.');
   }
+
+  // Step 3: Now that the invitation is claimed, add the user as a collaborator.
+  try {
+    await this.canvasesService.addCollaborator(
+      invitation.canvasId.toString(),
+      userId,
+    );
+  } catch (error) {
+    // IMPORTANT: If adding the collaborator fails, revert the invitation status.
+    await this.invitationModel.updateOne(
+      { _id: invitationId },
+      { $set: { status: InvitationStatus.PENDING } },
+    );
+    // Re-throw the original error to inform the client.
+    throw error;
+  }
+
+  // Step 4: Return the final, updated invitation.
+  const finalInvitation = await this.invitationModel.findById(invitationId);
+  if (!finalInvitation) {
+    // This should realistically never happen, but it's good practice for type safety.
+    throw new NotFoundException('Could not find invitation after accepting.');
+  }
+  return finalInvitation;
+}
 
   async declineInvitation(invitationId: string, userId: string): Promise<Invitation> {
     const invitation = await this.invitationModel.findById(invitationId);
