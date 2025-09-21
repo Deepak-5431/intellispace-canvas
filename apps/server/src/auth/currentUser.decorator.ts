@@ -9,7 +9,7 @@ export const CurrentUser = createParamDecorator(
     const jwt = request.headers.authorization?.split(' ')[1];
     if (jwt) {
       const decoded: { userId: string } = jwtDecode(jwt);
-      return { id: decoded.userId }; // We will return an object with the user's ID
+      return { id: decoded.userId }; 
     }
     return null;
   },
